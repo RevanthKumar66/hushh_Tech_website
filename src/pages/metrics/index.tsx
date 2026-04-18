@@ -16,7 +16,7 @@ import {
 import Footer from "../../components/Footer";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import { buildMetricsSummary } from "./metricsService";
-import type { SummaryPayload, SummaryState } from "./types";
+import type { SummaryState } from "./types";
 
 const REFRESH_INTERVAL_MS = 5 * 60_000;
 const DEFAULT_WINDOW_DAYS = 7;
@@ -164,9 +164,11 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`rounded-[1.6rem] border border-gray-200 bg-white px-5 py-5 shadow-sm ${className}`.trim()}
+      role="article"
+      aria-label={`${eyebrow}: ${value} ${label}`}
+      className={`group rounded-[1.6rem] border border-gray-200 bg-white px-5 py-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#244d86]/30 hover:shadow-md ${className}`.trim()}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 transition-colors group-hover:text-[#244d86]">
         {eyebrow}
       </p>
       <h3 className="mt-3 text-[28px] font-semibold tracking-tight text-black">
@@ -193,10 +195,12 @@ function SummaryCell({
 
   return (
     <div
-      className={`rounded-2xl border px-4 py-3 ${
+      role="status"
+      aria-label={`${label}: ${value}`}
+      className={`rounded-2xl border px-4 py-3 transition-all duration-300 hover:shadow-sm ${
         isDark
-          ? "border-white/10 bg-white/5"
-          : "border-[#e8dfcb] bg-white"
+          ? "border-white/10 bg-white/5 hover:bg-white/10"
+          : "border-[#e8dfcb] bg-white hover:border-[#244d86]/20"
       }`}
     >
       <p
@@ -231,26 +235,40 @@ function FunnelStackRow({
   const ratio = baseline > 0 ? (value / baseline) * 100 : 0;
   const clampedWidth =
     value > 0 ? Math.max(10, Math.min(100, ratio)) : 0;
+  const percentText = baseline > 0 ? formatPercent(value / baseline) : "n/a";
 
   return (
-    <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+    <div 
+      className="group rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-4 py-4 transition-all hover:bg-white/[0.08]"
+      role="group"
+      aria-label={`${label} funnel step: ${formatNumber(value)} users, ${percentText} of total`}
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/55">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/55 transition-colors group-hover:text-white/80">
             {label}
           </p>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
             {formatNumber(value)}
           </p>
         </div>
-        <p className="text-sm font-medium text-white/60">
-          {baseline > 0 ? formatPercent(value / baseline) : "n/a"}
-        </p>
+        <div className="text-right">
+          <p className="text-sm font-medium text-white/60">
+            {percentText}
+          </p>
+        </div>
       </div>
 
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+      <div 
+        className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"
+        role="progressbar"
+        aria-valuenow={clampedWidth}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} conversion progress`}
+      >
         <div
-          className={`h-full rounded-full ${accentClassName}`}
+          className={`h-full rounded-full transition-all duration-1000 ease-out ${accentClassName}`}
           style={{ width: `${clampedWidth}%` }}
         />
       </div>
@@ -381,8 +399,9 @@ export default function MetricsPage() {
         <HushhTechHeader showTicker={false} />
 
         <main className="mx-auto flex w-full max-w-[88rem] flex-col gap-8 px-6 pb-16 pt-6 md:px-8">
-          <section className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
+          <section className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]" aria-labelledby="kpi-hero-title">
             <div className="rounded-[2rem] border border-[#e8dfcb] bg-[#fffaf0] p-6 shadow-sm md:p-8">
+
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                 <div className="max-w-2xl">
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#244d86]/15 bg-[#244d86]/5 px-3 py-1">
@@ -397,11 +416,13 @@ export default function MetricsPage() {
                   </div>
 
                   <h1
+                    id="kpi-hero-title"
                     className="mt-5 text-[2.5rem] font-normal leading-[0.95] tracking-tight text-black md:text-[4.25rem]"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
                     Team KPI board.
                   </h1>
+
 
                   <p className="mt-4 max-w-2xl text-base leading-7 text-[#5f5a4d] md:text-lg">
                     Seven days of website signup, onboarding, investor profile,
@@ -461,7 +482,12 @@ export default function MetricsPage() {
                 </div>
               </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div 
+                className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+                role="region"
+                aria-label="Core Business Metrics"
+              >
+
                 <MetricCard
                   eyebrow="Website KPI"
                   label="Raw signups"
@@ -525,19 +551,24 @@ export default function MetricsPage() {
               </div>
             </div>
 
-            <aside className="rounded-[2rem] border border-black bg-[#050505] p-6 text-white shadow-2xl md:p-8">
+            <aside 
+              className="rounded-[2rem] border border-black bg-[#050505] p-6 text-white shadow-2xl md:p-8"
+              aria-labelledby="funnel-stack-title"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">
                     Funnel stack
                   </p>
                   <h2
+                    id="funnel-stack-title"
                     className="mt-2 text-3xl font-normal tracking-tight"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
                     From signup to confirmation
                   </h2>
                 </div>
+
                 <span
                   className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${
                     statusLabel === "Issue"
@@ -615,17 +646,18 @@ export default function MetricsPage() {
             </section>
           )}
 
-          <section className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+          <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]" aria-labelledby="kpi-flow-title">
             <div className="rounded-[2rem] border border-[#e8dfcb] bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#244d86]">
                     7-Day KPI Flow
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-black">
+                  <h2 id="kpi-flow-title" className="mt-2 text-2xl font-semibold tracking-tight text-black">
                     Website signups, onboarding, and confirmed profiles by day
                   </h2>
                 </div>
+
                 <p className="text-sm leading-6 text-[#5f5a4d]">
                   Daily buckets are resolved in{" "}
                   <span className="font-medium text-black">
@@ -731,7 +763,9 @@ export default function MetricsPage() {
                   ].map(([label, value]) => (
                     <div
                       key={label}
-                      className="rounded-2xl border border-[#ece4d2] bg-[#faf5ea] px-4 py-3"
+                      className="rounded-2xl border border-[#ece4d2] bg-[#faf5ea] px-4 py-3 transition-all hover:bg-[#f3ead8]"
+                      role="article"
+                      aria-label={`${label}: ${value}`}
                     >
                       <p className="text-sm text-[#5f5a4d]">{label}</p>
                       <p className="mt-2 text-2xl font-semibold text-black">
@@ -758,9 +792,16 @@ export default function MetricsPage() {
                             {formatNumber(item.users)}
                           </span>
                         </div>
-                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#eee6d4]">
+                        <div 
+                          className="mt-2 h-2 overflow-hidden rounded-full bg-[#eee6d4]"
+                          role="progressbar"
+                          aria-valuenow={Math.round(((item.users || 0) / Math.max(1, summary.data?.businessFunnel.overview.persistedUsers || 1)) * 100)}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${item.step} step volume`}
+                        >
                           <div
-                            className="h-full rounded-full bg-[#244d86]"
+                            className="h-full rounded-full bg-[#244d86] transition-all duration-1000 ease-out"
                             style={{
                               width: `${Math.max(
                                 8,
@@ -778,6 +819,7 @@ export default function MetricsPage() {
                             }}
                           />
                         </div>
+
                       </div>
                     )
                   )}
@@ -786,16 +828,17 @@ export default function MetricsPage() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-[#e8dfcb] bg-[#fffaf0] p-6 shadow-sm">
+          <section className="group rounded-[2rem] border border-[#e8dfcb] bg-[#fffaf0] p-6 shadow-sm transition-all hover:shadow-md" aria-labelledby="traffic-context-title">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#244d86]">
                   Traffic context
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-black">
+                <h2 id="traffic-context-title" className="mt-2 text-2xl font-semibold tracking-tight text-black">
                   DAU, WAU, MAU, sessions, and engagement
                 </h2>
               </div>
+
 
               {lookerStudioLink && (
                 <a
