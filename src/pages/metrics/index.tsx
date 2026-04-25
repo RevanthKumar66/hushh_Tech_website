@@ -262,7 +262,7 @@ function FunnelStackRow({
       <div 
         className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"
         role="progressbar"
-        aria-valuenow={clampedWidth}
+        aria-valuenow={Math.round(ratio)}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`${label} conversion progress`}
