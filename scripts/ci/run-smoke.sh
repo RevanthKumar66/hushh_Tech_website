@@ -17,6 +17,7 @@ echo "Running compact smoke suite..."
 npx vitest run "${SMOKE_SUITES[@]}"
 
 if [ -n "${SMOKE_REPORT_PATH:-}" ]; then
+  mkdir -p "$(dirname "$SMOKE_REPORT_PATH")"
   node -e '
     const fs = require("fs");
     const path = process.argv[1];
