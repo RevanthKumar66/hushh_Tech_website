@@ -92,6 +92,8 @@ app.all('/api/public-investor-profile', async (req, res) => wrapHandler(await lo
 app.all('/api/send-email-notification', async (req, res) => wrapHandler(await loadApi('send-email-notification'))(req, res));
 app.all('/api/wallet-pass', async (req, res) => wrapHandler(await loadApi('wallet-pass'))(req, res));
 app.all('/api/google-wallet-pass', async (req, res) => wrapHandler(await loadApi('google-wallet-pass'))(req, res));
+app.use('/api/shared', express.static(join(__dirname, 'api/shared')));
+
 
 // ---------------------------------------------------------------------------
 // .well-known routes (Apple App Site Association, etc.)
@@ -136,7 +138,7 @@ app.get('/metric', (_req, res) => {
   res.redirect(302, '/metrics');
 });
 
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   // Set no-cache for dynamic pages
   const isNoCachePath = NO_CACHE_PATHS.some((p) => req.path === p || req.path.startsWith(p + '/'));
   if (isNoCachePath || req.path === '/' || req.path === '/index.html') {
@@ -153,7 +155,12 @@ app.get('*', (req, res) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   }
 
-  res.sendFile(join(DIST_DIR, 'index.html'));
+  const indexPath = join(DIST_DIR, 'index.html');
+  try {
+    res.sendFile(indexPath);
+  } catch (err) {
+    res.status(404).send('Frontend build not found. Please run npm run dev and use port 5173 for UI development.');
+  }
 });
 
 // ---------------------------------------------------------------------------
